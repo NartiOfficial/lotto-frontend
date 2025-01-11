@@ -8,11 +8,13 @@ export default function RootLayout({
 	children: React.ReactNode;
 }) {
 	return (
-		<html lang='en'>
+		<html lang='pl'>
 			<body>
 				<AuthProvider>
-					<Navbar />
-					<main>{children}</main>
+					<div className='bg-gradient-to-r from-blue-600 to-indigo-700 min-h-screen text-white'>
+						<Navbar />
+						<main>{children}</main>
+					</div>
 				</AuthProvider>
 			</body>
 		</html>
