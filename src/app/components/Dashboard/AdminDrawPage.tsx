@@ -25,19 +25,18 @@ import {
 import Link from "next/link";
 import api from "../../../services/api";
 
-interface User {
+interface Draw {
 	id: number;
-	name: string;
-	email: string;
+	draw_date: string;
+	winning_numbers: number[] | null;
 	created_at: string;
-	roles: { name: string }[];
 }
 
-const AdminUsersPage: React.FC = () => {
-	const [users, setUsers] = useState<User[]>([]);
-	const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+const AdminDrawsPage: React.FC = () => {
+	const [draws, setDraws] = useState<Draw[]>([]);
+	const [filteredDraws, setFilteredDraws] = useState<Draw[]>([]);
 	const [page, setPage] = useState(0);
-	const [rowsPerPage, setRowsPerPage] = useState(15);
+	const [rowsPerPage, setRowsPerPage] = useState(10);
 	const [successMessage, setSuccessMessage] = useState<string | null>(null);
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 	const [searchQuery, setSearchQuery] = useState<string>("");
@@ -46,47 +45,61 @@ const AdminUsersPage: React.FC = () => {
 	const [sortColumn, setSortColumn] = useState<string>("id");
 
 	useEffect(() => {
-		const fetchUsers = async () => {
+		const fetchDraws = async () => {
 			try {
-				const response = await api.get("/admin/users");
-				setUsers(response.data.data || response.data);
+				const response = await api.get("/draws");
+				setDraws(response.data.data || response.data);
 			} catch {
-				setErrorMessage("Nie udało się pobrać listy użytkowników.");
+				setErrorMessage("Nie udało się pobrać listy losowań.");
 			}
 		};
-		fetchUsers();
+		fetchDraws();
 	}, []);
 
 	useEffect(() => {
-		let sortedUsers = [...users];
+		let sortedDraws = [...draws];
 
-		if (sortColumn === "roles") {
-			// Sortowanie po nazwie roli
-			sortedUsers.sort((a, b) => {
-				const roleA = a.roles.length ? a.roles[0].name : "";
-				const roleB = b.roles.length ? b.roles[0].name : "";
-				if (roleA > roleB) return sortDirection === "asc" ? 1 : -1;
-				if (roleA < roleB) return sortDirection === "asc" ? -1 : 1;
+		if (sortDirection === "asc") {
+			sortedDraws.sort((a, b) => {
+				if (sortColumn === "id") {
+					return a.id > b.id ? 1 : -1;
+				} else if (sortColumn === "draw_date") {
+					return new Date(a.draw_date) > new Date(b.draw_date) ? 1 : -1;
+				} else if (sortColumn === "winning_numbers") {
+					return (a.winning_numbers?.join(", ") || "") >
+						(b.winning_numbers?.join(", ") || "")
+						? 1
+						: -1;
+				}
 				return 0;
 			});
 		} else {
-			if (sortDirection === "asc") {
-				sortedUsers.sort((a, b) => (a[sortColumn as keyof User] > b[sortColumn as keyof User] ? 1 : -1));
-			} else {
-				sortedUsers.sort((a, b) => (a[sortColumn as keyof User] < b[sortColumn as keyof User] ? 1 : -1));
-			}
+			sortedDraws.sort((a, b) => {
+				if (sortColumn === "id") {
+					return a.id < b.id ? 1 : -1;
+				} else if (sortColumn === "draw_date") {
+					return new Date(a.draw_date) < new Date(b.draw_date) ? 1 : -1;
+				} else if (sortColumn === "winning_numbers") {
+					return (a.winning_numbers?.join(", ") || "") <
+						(b.winning_numbers?.join(", ") || "")
+						? 1
+						: -1;
+				}
+				return 0;
+			});
 		}
 
-		setFilteredUsers(
-			sortedUsers.filter(
-				(user) =>
-					user.id.toString().includes(searchQuery) ||
-					user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-					user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-					new Date(user.created_at).toLocaleString().includes(searchQuery)
+		setFilteredDraws(
+			sortedDraws.filter(
+				(draw) =>
+					draw.id.toString().includes(searchQuery) ||
+					new Date(draw.draw_date).toLocaleString().includes(searchQuery) ||
+					(draw.winning_numbers
+						? draw.winning_numbers.join(", ").includes(searchQuery)
+						: false)
 			)
 		);
-	}, [searchQuery, users, sortColumn, sortDirection]);
+	}, [searchQuery, draws, sortColumn, sortDirection]);
 
 	const handleChangePage = (
 		event: React.MouseEvent<HTMLButtonElement> | null,
@@ -102,14 +115,14 @@ const AdminUsersPage: React.FC = () => {
 		setPage(0);
 	};
 
-	const handleDeleteUser = async (userId: number) => {
-		if (!confirm("Czy na pewno chcesz usunąć tego użytkownika?")) return;
+	const handleDeleteDraw = async (drawId: number) => {
+		if (!confirm("Czy na pewno chcesz usunąć to losowanie?")) return;
 		try {
-			await api.delete(`/admin/users/${userId}`);
-			setSuccessMessage("Użytkownik został pomyślnie usunięty.");
-			setUsers((prev) => prev.filter((user) => user.id !== userId));
+			await api.delete(`/admin/draws/${drawId}`);
+			setSuccessMessage("Losowanie zostało pomyślnie usunięte.");
+			setDraws((prev) => prev.filter((draw) => draw.id !== drawId));
 		} catch (error) {
-			setErrorMessage("Nie udało się usunąć użytkownika.");
+			setErrorMessage("Nie udało się usunąć losowania.");
 		}
 	};
 
@@ -120,7 +133,7 @@ const AdminUsersPage: React.FC = () => {
 
 	return (
 		<div className='container mx-auto p-6'>
-			<h1 className='text-3xl font-bold mb-6'>Użytkownicy</h1>
+			<h1 className='text-3xl font-bold mb-6'>Wyniki losowań</h1>
 			{successMessage && (
 				<Alert
 					severity='success'
@@ -161,40 +174,21 @@ const AdminUsersPage: React.FC = () => {
 									)}
 								</IconButton>
 							</TableCell>
-							<TableCell onClick={() => handleSort("name")}>
-								<strong>Imię</strong>
+							<TableCell onClick={() => handleSort("draw_date")}>
+								<strong>Data losowania</strong>
 								<IconButton>
-									{sortColumn === "name" && sortDirection === "asc" ? (
+									{sortColumn === "draw_date" && sortDirection === "asc" ? (
 										<ArrowUpward />
 									) : (
 										<ArrowDownward />
 									)}
 								</IconButton>
 							</TableCell>
-							<TableCell onClick={() => handleSort("email")}>
-								<strong>Email</strong>
+							<TableCell onClick={() => handleSort("winning_numbers")}>
+								<strong>Wyniki losowania</strong>
 								<IconButton>
-									{sortColumn === "email" && sortDirection === "asc" ? (
-										<ArrowUpward />
-									) : (
-										<ArrowDownward />
-									)}
-								</IconButton>
-							</TableCell>
-							<TableCell onClick={() => handleSort("created_at")}>
-								<strong>Data utworzenia</strong>
-								<IconButton>
-									{sortColumn === "created_at" && sortDirection === "asc" ? (
-										<ArrowUpward />
-									) : (
-										<ArrowDownward />
-									)}
-								</IconButton>
-							</TableCell>
-							<TableCell onClick={() => handleSort("roles")}>
-								<strong>Rola</strong>
-								<IconButton>
-									{sortColumn === "roles" && sortDirection === "asc" ? (
+									{sortColumn === "winning_numbers" &&
+									sortDirection === "asc" ? (
 										<ArrowUpward />
 									) : (
 										<ArrowDownward />
@@ -207,21 +201,23 @@ const AdminUsersPage: React.FC = () => {
 						</TableRow>
 					</TableHead>
 					<TableBody>
-						{filteredUsers
+						{filteredDraws
 							.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-							.map((user) => (
-								<TableRow key={user.id}>
-									<TableCell>{user.id}</TableCell>
-									<TableCell>{user.name}</TableCell>
-									<TableCell>{user.email}</TableCell>
+							.map((draw) => (
+								<TableRow key={draw.id}>
+									<TableCell>{draw.id}</TableCell>
 									<TableCell>
-										{new Date(user.created_at).toLocaleString()}
+										{new Date(draw.draw_date).toLocaleString()}
 									</TableCell>
 									<TableCell>
-										{user.roles.map((role) => role.name).join(", ")}
+										{draw.winning_numbers ? (
+											draw.winning_numbers.join(", ")
+										) : (
+											<p className='text-gray-500'>Brak wyników</p>
+										)}
 									</TableCell>
 									<TableCell>
-										<Link href={`/admin/users/${user.id}/edit`}>
+										<Link href={`/admin/draws/${draw.id}/edit`}>
 											<Button variant='outlined' color='primary'>
 												Edytuj
 											</Button>
@@ -230,7 +226,7 @@ const AdminUsersPage: React.FC = () => {
 											variant='outlined'
 											color='error'
 											startIcon={<DeleteIcon />}
-											onClick={() => handleDeleteUser(user.id)}
+											onClick={() => handleDeleteDraw(draw.id)}
 											className='ml-2'>
 											Usuń
 										</Button>
@@ -242,7 +238,7 @@ const AdminUsersPage: React.FC = () => {
 						<TableRow>
 							<TablePagination
 								rowsPerPageOptions={[5, 10, 25]}
-								count={filteredUsers.length}
+								count={filteredDraws.length}
 								rowsPerPage={rowsPerPage}
 								page={page}
 								onPageChange={handleChangePage}
@@ -256,4 +252,4 @@ const AdminUsersPage: React.FC = () => {
 	);
 };
 
-export default AdminUsersPage;
+export default AdminDrawsPage;

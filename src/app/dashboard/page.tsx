@@ -1,13 +1,12 @@
 "use client";
 
-import React from "react";
+import React, { useContext } from "react";
 import { redirect } from "next/navigation";
-import { useContext } from "react";
 import { AuthContext } from "../../contexts/AuthContext";
 import UserDashboard from "../components/Dashboard/UserDashboard";
 
 const DashboardPage: React.FC = () => {
-	const { user } = useContext(AuthContext);
+	const { user } = useContext(AuthContext) || {};
 
 	if (!user) {
 		redirect("/login");

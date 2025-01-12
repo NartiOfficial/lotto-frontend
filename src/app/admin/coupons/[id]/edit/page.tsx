@@ -27,6 +27,13 @@ interface Draw {
 	draw_date: string;
 }
 
+interface Coupon {
+	id: number;
+	numbers: number[];
+	user: User;
+	draws: Draw[];
+}
+
 const EditCouponPage: React.FC = () => {
 	const router = useRouter();
 	const { id } = useParams();
@@ -38,15 +45,20 @@ const EditCouponPage: React.FC = () => {
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 	const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-	// Pobieranie danych kuponu
 	useEffect(() => {
 		const fetchCoupon = async () => {
 			try {
 				const response = await api.get(`/admin/coupons/${id}`);
-				const coupon = response.data;
+				const coupon: Coupon = response.data;
 				setNumbers(coupon.numbers.join(", "));
 				setSelectedUserId(coupon.user.id);
-				setSelectedDraws(coupon.draws.map((draw) => draw.id));
+
+				// Sprawdzenie, czy istnieją losowania i ustawienie selectedDraws
+				if (coupon.draws && Array.isArray(coupon.draws)) {
+					setSelectedDraws(coupon.draws.map((draw) => draw.id));
+				} else {
+					setSelectedDraws([]); // Jeśli brak losowań, ustaw pustą tablicę
+				}
 			} catch (error) {
 				setErrorMessage("Nie udało się załadować danych kuponu.");
 			}
@@ -142,7 +154,11 @@ const EditCouponPage: React.FC = () => {
 				</Alert>
 			)}
 			<FormControl fullWidth className='mb-4'>
-				<InputLabel id='user-select-label'>Użytkownik</InputLabel>
+				<InputLabel id='user-select-label'>
+					Użytkownik:{" "}
+					{users.find((user) => user.id === selectedUserId)?.name ||
+						"Wybierz użytkownika"}
+				</InputLabel>
 				<Select
 					labelId='user-select-label'
 					value={selectedUserId || ""}
