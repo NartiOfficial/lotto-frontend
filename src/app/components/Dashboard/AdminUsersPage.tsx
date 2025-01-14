@@ -37,7 +37,7 @@ const AdminUsersPage: React.FC = () => {
 	const [users, setUsers] = useState<User[]>([]);
 	const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
 	const [page, setPage] = useState(0);
-	const [rowsPerPage, setRowsPerPage] = useState(15);
+	const [rowsPerPage, setRowsPerPage] = useState(5);
 	const [successMessage, setSuccessMessage] = useState<string | null>(null);
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 	const [searchQuery, setSearchQuery] = useState<string>("");
@@ -61,7 +61,6 @@ const AdminUsersPage: React.FC = () => {
 		let sortedUsers = [...users];
 
 		if (sortColumn === "roles") {
-			// Sortowanie po nazwie roli
 			sortedUsers.sort((a, b) => {
 				const roleA = a.roles.length ? a.roles[0].name : "";
 				const roleB = b.roles.length ? b.roles[0].name : "";
@@ -71,9 +70,13 @@ const AdminUsersPage: React.FC = () => {
 			});
 		} else {
 			if (sortDirection === "asc") {
-				sortedUsers.sort((a, b) => (a[sortColumn as keyof User] > b[sortColumn as keyof User] ? 1 : -1));
+				sortedUsers.sort((a, b) =>
+					a[sortColumn as keyof User] > b[sortColumn as keyof User] ? 1 : -1
+				);
 			} else {
-				sortedUsers.sort((a, b) => (a[sortColumn as keyof User] < b[sortColumn as keyof User] ? 1 : -1));
+				sortedUsers.sort((a, b) =>
+					a[sortColumn as keyof User] < b[sortColumn as keyof User] ? 1 : -1
+				);
 			}
 		}
 

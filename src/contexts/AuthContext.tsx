@@ -25,10 +25,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
 	const [user, setUser] = useState<User | null>(null);
 
+	const login = async (email: string, password: string) => {
+		const response = await api.post("/login", { email, password });
+		const token = response.data.token;
+
+		sessionStorage.setItem("authToken", token);
+		setUser(response.data.user);
+	};
+
+	const logout = async () => {
+		try {
+			await api.post("/logout");
+		} catch (error) {
+			console.error("Błąd podczas wylogowania:", error);
+		} finally {
+			sessionStorage.removeItem("authToken");
+			setUser(null);
+		}
+	};
+
 	useEffect(() => {
-		const storedToken = localStorage.getItem("authToken");
+		const storedToken = sessionStorage.getItem("authToken");
 		if (storedToken) {
-			api.defaults.headers.common["Authorization"] = `Bearer ${storedToken}`;
 			fetchUser();
 		}
 	}, []);
@@ -39,26 +57,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 			setUser(response.data);
 		} catch {
 			logout();
-		}
-	};
-
-	const login = async (email: string, password: string) => {
-		const response = await api.post("/login", { email, password });
-		const token = response.data.token;
-
-		localStorage.setItem("authToken", token);
-		api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-		setUser(response.data.user);
-	};
-
-	const logout = async () => {
-		try {
-			await api.post("/logout");
-		} catch (error) {
-			console.error("Błąd podczas wylogowania:", error);
-		} finally {
-			localStorage.removeItem("authToken");
-			setUser(null);
 		}
 	};
 
