@@ -42,10 +42,13 @@ const Navbar: React.FC = () => {
 				</div>
 
 				<div className='flex items-center space-x-4'>
-					{user ? (
+					{user?.role === "user" || user?.role === "admin" ? (
 						<>
 							<span className='text-white font-medium'>
-								Witaj, <strong className='text-yellow-300'>{user.name}</strong>
+								Witaj,{" "}
+								<strong className='text-yellow-300'>
+									{user?.name ?? "Gość"}
+								</strong>
 							</span>
 							<button
 								onClick={handleLogout}

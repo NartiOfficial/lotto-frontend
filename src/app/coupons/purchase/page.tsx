@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
 	Box,
 	Button,
@@ -18,19 +18,48 @@ import {
 } from "@mui/material";
 import api from "../../../services/api";
 
+interface Draw {
+	id: number;
+	draw_date: string;
+}
+
 const CreateCouponPage: React.FC = () => {
 	const [numbers, setNumbers] = useState<number[]>([]);
 	const [drawIds, setDrawIds] = useState<number[]>([]);
+	const [availableDraws, setAvailableDraws] = useState<Draw[]>([]);
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 	const [successMessage, setSuccessMessage] = useState<string | null>(null);
+	const [inputValue, setInputValue] = useState<string>("");
 
-	const availableDraws = [1, 2, 3, 4, 5];
+	useEffect(() => {
+		const fetchAvailableDraws = async () => {
+			try {
+				const response = await api.get("/draws");
+				// Filtrowanie przyszłych losowań
+				const futureDraws = response.data.filter(
+					(draw: Draw) => new Date(draw.draw_date) >= new Date()
+				);
+				setAvailableDraws(futureDraws);
+			} catch (error) {
+				setErrorMessage("Nie udało się pobrać losowań.");
+			}
+		};
+		fetchAvailableDraws();
+	}, []);
 
 	const handleChangeNumbers = (event: React.ChangeEvent<HTMLInputElement>) => {
-		const value = Number(event.target.value);
+		const value = event.target.value;
+		if (/^\d{0,2}$/.test(value)) {
+			setInputValue(value);
+		}
+	};
+
+	const handleAddNumber = () => {
+		const value = Number(inputValue);
 		if (value >= 1 && value <= 49 && !numbers.includes(value)) {
 			setNumbers([...numbers, value]);
 		}
+		setInputValue("");
 	};
 
 	const handleRemoveNumber = (number: number) => {
@@ -98,12 +127,20 @@ const CreateCouponPage: React.FC = () => {
 				<TextField
 					label='Wybierz liczbę'
 					variant='outlined'
-					type='number'
+					type='text'
+					value={inputValue}
 					onChange={handleChangeNumbers}
-					value=''
+					onKeyPress={(event) => {
+						if (event.key === "Enter") {
+							handleAddNumber();
+						}
+					}}
 					sx={{ mb: 2 }}
 					className='text-black'
 				/>
+				<Button onClick={handleAddNumber} variant='outlined' sx={{ ml: 2 }}>
+					Dodaj
+				</Button>
 			</Box>
 			<Box sx={{ mb: 4 }}>
 				<Typography variant='body1' className='text-black'>
@@ -122,16 +159,26 @@ const CreateCouponPage: React.FC = () => {
 			</Box>
 
 			<FormControl fullWidth sx={{ mb: 4 }}>
-				<InputLabel>Wybierz losowanie</InputLabel>
+				<InputLabel>Wybierz daty losowań</InputLabel>
 				<Select
 					multiple
 					value={drawIds}
 					onChange={handleChangeDraws}
-					renderValue={(selected) => selected.join(", ")}>
-					{availableDraws.map((drawId) => (
-						<MenuItem key={drawId} value={drawId}>
-							<Checkbox checked={drawIds.includes(drawId)} />
-							<ListItemText primary={`Losowanie ${drawId}`} />
+					renderValue={(selected) =>
+						selected
+							.map((id) =>
+								new Date(
+									availableDraws.find((draw) => draw.id === id)?.draw_date || ""
+								).toLocaleDateString()
+							)
+							.join(", ")
+					}>
+					{availableDraws.map((draw) => (
+						<MenuItem key={draw.id} value={draw.id}>
+							<Checkbox checked={drawIds.includes(draw.id)} />
+							<ListItemText
+								primary={new Date(draw.draw_date).toLocaleDateString()}
+							/>
 						</MenuItem>
 					))}
 				</Select>
