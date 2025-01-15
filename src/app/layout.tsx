@@ -1,6 +1,7 @@
 import "../app/globals.css";
 import { AuthProvider } from "../contexts/AuthContext";
 import Navbar from "../app/components/Layout/Navbar";
+import Footer from "./components/Layout/Footer";
 
 export default function RootLayout({
 	children,
@@ -14,6 +15,7 @@ export default function RootLayout({
 					<div className='bg-gradient-to-r from-blue-600 to-indigo-700 min-h-screen text-white'>
 						<Navbar />
 						<main>{children}</main>
+						<Footer />
 					</div>
 				</AuthProvider>
 			</body>

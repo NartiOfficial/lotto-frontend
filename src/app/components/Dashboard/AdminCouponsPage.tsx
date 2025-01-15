@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import {
-	Button,
 	Table,
 	TableBody,
 	TableCell,
@@ -15,9 +14,9 @@ import {
 	Alert,
 	TableSortLabel,
 	TextField,
+	Box,
+	Typography,
 } from "@mui/material";
-import { Delete as DeleteIcon } from "@mui/icons-material";
-import Link from "next/link";
 import api from "../../../services/api";
 
 interface Coupon {
@@ -39,7 +38,6 @@ const AdminCouponsPage: React.FC = () => {
 	const [filteredCoupons, setFilteredCoupons] = useState<Coupon[]>([]);
 	const [page, setPage] = useState(0);
 	const [rowsPerPage, setRowsPerPage] = useState(10);
-	const [successMessage, setSuccessMessage] = useState<string | null>(null);
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 	const [order, setOrder] = useState<"asc" | "desc">("asc");
 	const [orderBy, setOrderBy] = useState<keyof Coupon | string>("id");
@@ -81,17 +79,6 @@ const AdminCouponsPage: React.FC = () => {
 	) => {
 		setRowsPerPage(parseInt(event.target.value, 10));
 		setPage(0);
-	};
-
-	const handleDeleteCoupon = async (couponId: number) => {
-		if (!confirm("Czy na pewno chcesz usunąć ten kupon?")) return;
-		try {
-			await api.delete(`/admin/coupons/${couponId}`);
-			setSuccessMessage("Kupon został pomyślnie usunięty.");
-			setCoupons((prev) => prev.filter((coupon) => coupon.id !== couponId));
-		} catch {
-			setErrorMessage("Nie udało się usunąć kuponu.");
-		}
 	};
 
 	const handleRequestSort = (property: keyof Coupon | string) => {
@@ -145,35 +132,50 @@ const AdminCouponsPage: React.FC = () => {
 	};
 
 	return (
-		<div className='container mx-auto p-6'>
-			<h1 className='text-3xl font-bold mb-6'>Kupony użytkowników</h1>
-			{successMessage && (
-				<Alert
-					severity='success'
-					onClose={() => setSuccessMessage(null)}
-					className='mb-4'>
-					{successMessage}
-				</Alert>
-			)}
+		<Box
+			sx={{
+				maxWidth: "80%",
+				margin: "auto",
+				padding: "2rem",
+				borderRadius: "12px",
+				paddingBottom: "10rem",
+			}}>
+			<Typography variant='h4' component='h1' gutterBottom>
+				Kupony użytkowników
+			</Typography>
 			{errorMessage && (
 				<Alert
 					severity='error'
 					onClose={() => setErrorMessage(null)}
-					className='mb-4'>
+					sx={{ marginBottom: "1rem" }}>
 					{errorMessage}
 				</Alert>
 			)}
 
-			<TextField
-				label='Filtruj'
-				variant='outlined'
-				fullWidth
-				value={searchQuery}
-				onChange={(e) => setSearchQuery(e.target.value)}
-				className='mb-4'
-			/>
+			<Box
+				sx={{
+					display: "flex",
+					justifyContent: "space-between",
+					marginBottom: "1.5rem",
+				}}>
+				<TextField
+					label='Filtruj'
+					variant='outlined'
+					size='small'
+					sx={{
+						maxWidth: "300px",
+						backgroundColor: "white",
+						borderRadius: "8px",
+					}}
+					value={searchQuery}
+					onChange={(e) => setSearchQuery(e.target.value)}
+				/>
+			</Box>
 
-			<TableContainer component={Paper}>
+			<TableContainer
+				component={Paper}
+				elevation={3}
+				sx={{ borderRadius: "12px" }}>
 				<Table>
 					<TableHead>
 						<TableRow>
@@ -217,16 +219,13 @@ const AdminCouponsPage: React.FC = () => {
 									<strong>Losowania</strong>
 								</TableSortLabel>
 							</TableCell>
-							<TableCell>
-								<strong>Operacje</strong>
-							</TableCell>
 						</TableRow>
 					</TableHead>
 					<TableBody>
 						{stableSort(filteredCoupons, getComparator(order, orderBy))
 							.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
 							.map((coupon) => (
-								<TableRow key={coupon.id}>
+								<TableRow key={coupon.id} hover>
 									<TableCell>{coupon.id}</TableCell>
 									<TableCell>{coupon.user.name}</TableCell>
 									<TableCell>{coupon.user.email}</TableCell>
@@ -234,30 +233,15 @@ const AdminCouponsPage: React.FC = () => {
 									<TableCell>
 										{Array.isArray(coupon.draws) && coupon.draws.length > 0 ? (
 											coupon.draws.map((draw) => (
-												<p key={draw.id}>
+												<Typography key={draw.id} variant='body2'>
 													{new Date(draw.draw_date).toLocaleString()}
-												</p>
+												</Typography>
 											))
 										) : (
-											<p className='text-gray-500'>
+											<Typography variant='body2' color='textSecondary'>
 												Brak losowań przypisanych do kuponu
-											</p>
+											</Typography>
 										)}
-									</TableCell>
-									<TableCell>
-										<Link href={`/admin/coupons/${coupon.id}/edit`}>
-											<Button variant='outlined' color='primary'>
-												Edytuj
-											</Button>
-										</Link>
-										<Button
-											variant='outlined'
-											color='error'
-											startIcon={<DeleteIcon />}
-											onClick={() => handleDeleteCoupon(coupon.id)}
-											className='ml-2'>
-											Usuń
-										</Button>
 									</TableCell>
 								</TableRow>
 							))}
@@ -265,7 +249,7 @@ const AdminCouponsPage: React.FC = () => {
 					<TableFooter>
 						<TableRow>
 							<TablePagination
-								rowsPerPageOptions={[5, 10, 25]}
+								rowsPerPageOptions={[5, 10, 25, 50]}
 								count={filteredCoupons.length}
 								rowsPerPage={rowsPerPage}
 								page={page}
@@ -276,7 +260,7 @@ const AdminCouponsPage: React.FC = () => {
 					</TableFooter>
 				</Table>
 			</TableContainer>
-		</div>
+		</Box>
 	);
 };
 
