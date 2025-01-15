@@ -138,7 +138,6 @@ const AdminCouponsPage: React.FC = () => {
 				margin: "auto",
 				padding: "2rem",
 				borderRadius: "12px",
-				paddingBottom: "10rem",
 			}}>
 			<Typography variant='h4' component='h1' gutterBottom>
 				Kupony użytkowników
@@ -249,7 +248,7 @@ const AdminCouponsPage: React.FC = () => {
 					<TableFooter>
 						<TableRow>
 							<TablePagination
-								rowsPerPageOptions={[5, 10, 25, 50]}
+								rowsPerPageOptions={[5, 10, 25]}
 								count={filteredCoupons.length}
 								rowsPerPage={rowsPerPage}
 								page={page}

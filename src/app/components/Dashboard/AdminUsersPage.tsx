@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import {
-	Button,
+	Box,
 	Table,
 	TableBody,
 	TableCell,
@@ -14,14 +14,10 @@ import {
 	Paper,
 	Alert,
 	TextField,
+	Typography,
 	IconButton,
 } from "@mui/material";
-import {
-	Delete as DeleteIcon,
-	ArrowUpward,
-	ArrowDownward,
-} from "@mui/icons-material";
-import Link from "next/link";
+import { ArrowUpward, ArrowDownward } from "@mui/icons-material";
 import api from "../../../services/api";
 
 interface User {
@@ -36,11 +32,9 @@ const AdminUsersPage: React.FC = () => {
 	const [users, setUsers] = useState<User[]>([]);
 	const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
 	const [page, setPage] = useState(0);
-	const [rowsPerPage, setRowsPerPage] = useState(5);
-	const [successMessage, setSuccessMessage] = useState<string | null>(null);
+	const [rowsPerPage, setRowsPerPage] = useState(10);
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 	const [searchQuery, setSearchQuery] = useState<string>("");
-
 	const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 	const [sortColumn, setSortColumn] = useState<string>("id");
 
@@ -104,38 +98,27 @@ const AdminUsersPage: React.FC = () => {
 		setPage(0);
 	};
 
-	const handleDeleteUser = async (userId: number) => {
-		if (!confirm("Czy na pewno chcesz usunąć tego użytkownika?")) return;
-		try {
-			await api.delete(`/admin/users/${userId}`);
-			setSuccessMessage("Użytkownik został pomyślnie usunięty.");
-			setUsers((prev) => prev.filter((user) => user.id !== userId));
-		} catch {
-			setErrorMessage("Nie udało się usunąć użytkownika.");
-		}
-	};
-
 	const handleSort = (column: string) => {
 		setSortColumn(column);
 		setSortDirection(sortDirection === "asc" ? "desc" : "asc");
 	};
 
 	return (
-		<div className='container mx-auto p-6'>
-			<h1 className='text-3xl font-bold mb-6'>Użytkownicy</h1>
-			{successMessage && (
-				<Alert
-					severity='success'
-					onClose={() => setSuccessMessage(null)}
-					className='mb-4'>
-					{successMessage}
-				</Alert>
-			)}
+		<Box
+			sx={{
+				maxWidth: "80%",
+				margin: "auto",
+				padding: "2rem",
+				borderRadius: "12px",
+			}}>
+			<Typography variant='h4' component='h1' gutterBottom>
+				Lista użytkowników
+			</Typography>
 			{errorMessage && (
 				<Alert
 					severity='error'
 					onClose={() => setErrorMessage(null)}
-					className='mb-4'>
+					sx={{ marginBottom: "1rem" }}>
 					{errorMessage}
 				</Alert>
 			)}
@@ -143,68 +126,68 @@ const AdminUsersPage: React.FC = () => {
 			<TextField
 				label='Filtruj'
 				variant='outlined'
-				fullWidth
+				size='small'
+				sx={{
+					maxWidth: "300px",
+					marginBottom: "1.5rem",
+					backgroundColor: "white",
+					borderRadius: "8px",
+				}}
 				value={searchQuery}
 				onChange={(e) => setSearchQuery(e.target.value)}
-				className='mb-4'
 			/>
 
-			<TableContainer component={Paper}>
+			<TableContainer
+				component={Paper}
+				elevation={3}
+				sx={{ borderRadius: "12px" }}>
 				<Table>
 					<TableHead>
 						<TableRow>
 							<TableCell onClick={() => handleSort("id")}>
 								<strong>ID</strong>
-								<IconButton>
-									{sortColumn === "id" && sortDirection === "asc" ? (
+								{sortColumn === "id" &&
+									(sortDirection === "asc" ? (
 										<ArrowUpward />
 									) : (
 										<ArrowDownward />
-									)}
-								</IconButton>
+									))}
 							</TableCell>
 							<TableCell onClick={() => handleSort("name")}>
 								<strong>Imię</strong>
-								<IconButton>
-									{sortColumn === "name" && sortDirection === "asc" ? (
+								{sortColumn === "name" &&
+									(sortDirection === "asc" ? (
 										<ArrowUpward />
 									) : (
 										<ArrowDownward />
-									)}
-								</IconButton>
+									))}
 							</TableCell>
 							<TableCell onClick={() => handleSort("email")}>
 								<strong>Email</strong>
-								<IconButton>
-									{sortColumn === "email" && sortDirection === "asc" ? (
+								{sortColumn === "email" &&
+									(sortDirection === "asc" ? (
 										<ArrowUpward />
 									) : (
 										<ArrowDownward />
-									)}
-								</IconButton>
+									))}
 							</TableCell>
 							<TableCell onClick={() => handleSort("created_at")}>
 								<strong>Data utworzenia</strong>
-								<IconButton>
-									{sortColumn === "created_at" && sortDirection === "asc" ? (
+								{sortColumn === "created_at" &&
+									(sortDirection === "asc" ? (
 										<ArrowUpward />
 									) : (
 										<ArrowDownward />
-									)}
-								</IconButton>
+									))}
 							</TableCell>
 							<TableCell onClick={() => handleSort("roles")}>
 								<strong>Rola</strong>
-								<IconButton>
-									{sortColumn === "roles" && sortDirection === "asc" ? (
+								{sortColumn === "roles" &&
+									(sortDirection === "asc" ? (
 										<ArrowUpward />
 									) : (
 										<ArrowDownward />
-									)}
-								</IconButton>
-							</TableCell>
-							<TableCell>
-								<strong>Operacje</strong>
+									))}
 							</TableCell>
 						</TableRow>
 					</TableHead>
@@ -212,7 +195,7 @@ const AdminUsersPage: React.FC = () => {
 						{filteredUsers
 							.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
 							.map((user) => (
-								<TableRow key={user.id}>
+								<TableRow key={user.id} hover>
 									<TableCell>{user.id}</TableCell>
 									<TableCell>{user.name}</TableCell>
 									<TableCell>{user.email}</TableCell>
@@ -221,21 +204,6 @@ const AdminUsersPage: React.FC = () => {
 									</TableCell>
 									<TableCell>
 										{user.roles.map((role) => role.name).join(", ")}
-									</TableCell>
-									<TableCell>
-										<Link href={`/admin/users/${user.id}/edit`}>
-											<Button variant='outlined' color='primary'>
-												Edytuj
-											</Button>
-										</Link>
-										<Button
-											variant='outlined'
-											color='error'
-											startIcon={<DeleteIcon />}
-											onClick={() => handleDeleteUser(user.id)}
-											className='ml-2'>
-											Usuń
-										</Button>
 									</TableCell>
 								</TableRow>
 							))}
@@ -254,7 +222,7 @@ const AdminUsersPage: React.FC = () => {
 					</TableFooter>
 				</Table>
 			</TableContainer>
-		</div>
+		</Box>
 	);
 };
 

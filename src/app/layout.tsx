@@ -13,9 +13,11 @@ export default function RootLayout({
 			<body>
 				<AuthProvider>
 					<div className='bg-gradient-to-r from-blue-600 to-indigo-700 min-h-screen text-white'>
-						<Navbar />
-						<main>{children}</main>
-						<Footer />
+						<div className='flex flex-col min-h-screen'>
+							<Navbar />
+							<main className='flex-grow'>{children}</main>
+							<Footer />
+						</div>
 					</div>
 				</AuthProvider>
 			</body>

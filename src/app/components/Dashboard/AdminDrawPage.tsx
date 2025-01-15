@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from "react";
 import {
 	Box,
-	Button,
 	Table,
 	TableBody,
 	TableCell,
@@ -15,14 +14,9 @@ import {
 	Paper,
 	Alert,
 	TextField,
-	IconButton,
+	Typography,
 } from "@mui/material";
-import {
-	Delete as DeleteIcon,
-	ArrowUpward,
-	ArrowDownward,
-} from "@mui/icons-material";
-import Link from "next/link";
+import { ArrowUpward, ArrowDownward } from "@mui/icons-material";
 import api from "../../../services/api";
 
 interface Draw {
@@ -37,10 +31,8 @@ const AdminDrawsPage: React.FC = () => {
 	const [filteredDraws, setFilteredDraws] = useState<Draw[]>([]);
 	const [page, setPage] = useState(0);
 	const [rowsPerPage, setRowsPerPage] = useState(10);
-	const [successMessage, setSuccessMessage] = useState<string | null>(null);
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 	const [searchQuery, setSearchQuery] = useState<string>("");
-
 	const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 	const [sortColumn, setSortColumn] = useState<string>("id");
 
@@ -115,38 +107,27 @@ const AdminDrawsPage: React.FC = () => {
 		setPage(0);
 	};
 
-	const handleDeleteDraw = async (drawId: number) => {
-		if (!confirm("Czy na pewno chcesz usunąć to losowanie?")) return;
-		try {
-			await api.delete(`/admin/draws/${drawId}`);
-			setSuccessMessage("Losowanie zostało pomyślnie usunięte.");
-			setDraws((prev) => prev.filter((draw) => draw.id !== drawId));
-		} catch (error) {
-			setErrorMessage("Nie udało się usunąć losowania.");
-		}
-	};
-
 	const handleSort = (column: string) => {
 		setSortColumn(column);
 		setSortDirection(sortDirection === "asc" ? "desc" : "asc");
 	};
 
 	return (
-		<div className='container mx-auto p-6'>
-			<h1 className='text-3xl font-bold mb-6'>Wyniki losowań</h1>
-			{successMessage && (
-				<Alert
-					severity='success'
-					onClose={() => setSuccessMessage(null)}
-					className='mb-4'>
-					{successMessage}
-				</Alert>
-			)}
+		<Box
+			sx={{
+				maxWidth: "80%",
+				margin: "auto",
+				padding: "2rem",
+				borderRadius: "12px",
+			}}>
+			<Typography variant='h4' component='h1' gutterBottom>
+				Wyniki losowań
+			</Typography>
 			{errorMessage && (
 				<Alert
 					severity='error'
 					onClose={() => setErrorMessage(null)}
-					className='mb-4'>
+					sx={{ marginBottom: "1rem" }}>
 					{errorMessage}
 				</Alert>
 			)}
@@ -154,49 +135,50 @@ const AdminDrawsPage: React.FC = () => {
 			<TextField
 				label='Filtruj'
 				variant='outlined'
-				fullWidth
+				size='small'
+				sx={{
+					maxWidth: "300px",
+					marginBottom: "1.5rem",
+					backgroundColor: "white",
+					borderRadius: "8px",
+				}}
 				value={searchQuery}
 				onChange={(e) => setSearchQuery(e.target.value)}
-				className='mb-4'
 			/>
 
-			<TableContainer component={Paper}>
+			<TableContainer
+				component={Paper}
+				elevation={3}
+				sx={{ borderRadius: "12px" }}>
 				<Table>
 					<TableHead>
 						<TableRow>
 							<TableCell onClick={() => handleSort("id")}>
 								<strong>ID</strong>
-								<IconButton>
-									{sortColumn === "id" && sortDirection === "asc" ? (
+								{sortColumn === "id" &&
+									(sortDirection === "asc" ? (
 										<ArrowUpward />
 									) : (
 										<ArrowDownward />
-									)}
-								</IconButton>
+									))}
 							</TableCell>
 							<TableCell onClick={() => handleSort("draw_date")}>
 								<strong>Data losowania</strong>
-								<IconButton>
-									{sortColumn === "draw_date" && sortDirection === "asc" ? (
+								{sortColumn === "draw_date" &&
+									(sortDirection === "asc" ? (
 										<ArrowUpward />
 									) : (
 										<ArrowDownward />
-									)}
-								</IconButton>
+									))}
 							</TableCell>
 							<TableCell onClick={() => handleSort("winning_numbers")}>
 								<strong>Wyniki losowania</strong>
-								<IconButton>
-									{sortColumn === "winning_numbers" &&
-									sortDirection === "asc" ? (
+								{sortColumn === "winning_numbers" &&
+									(sortDirection === "asc" ? (
 										<ArrowUpward />
 									) : (
 										<ArrowDownward />
-									)}
-								</IconButton>
-							</TableCell>
-							<TableCell>
-								<strong>Operacje</strong>
+									))}
 							</TableCell>
 						</TableRow>
 					</TableHead>
@@ -204,7 +186,7 @@ const AdminDrawsPage: React.FC = () => {
 						{filteredDraws
 							.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
 							.map((draw) => (
-								<TableRow key={draw.id}>
+								<TableRow key={draw.id} hover>
 									<TableCell>{draw.id}</TableCell>
 									<TableCell>
 										{new Date(draw.draw_date).toLocaleString()}
@@ -213,23 +195,10 @@ const AdminDrawsPage: React.FC = () => {
 										{draw.winning_numbers ? (
 											draw.winning_numbers.join(", ")
 										) : (
-											<p className='text-gray-500'>Brak wyników</p>
+											<Typography variant='body2' color='textSecondary'>
+												Brak wyników
+											</Typography>
 										)}
-									</TableCell>
-									<TableCell>
-										<Link href={`/admin/draws/${draw.id}/edit`}>
-											<Button variant='outlined' color='primary'>
-												Edytuj
-											</Button>
-										</Link>
-										<Button
-											variant='outlined'
-											color='error'
-											startIcon={<DeleteIcon />}
-											onClick={() => handleDeleteDraw(draw.id)}
-											className='ml-2'>
-											Usuń
-										</Button>
 									</TableCell>
 								</TableRow>
 							))}
@@ -248,7 +217,7 @@ const AdminDrawsPage: React.FC = () => {
 					</TableFooter>
 				</Table>
 			</TableContainer>
-		</div>
+		</Box>
 	);
 };
 
