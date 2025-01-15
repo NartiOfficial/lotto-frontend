@@ -35,7 +35,9 @@ const RegisterForm: React.FC = () => {
 	};
 
 	return (
-		<div className='h-[807px] flex justify-center items-center bg-gray-100'>
+		<div
+			className='flex justify-center items-center bg-gray-100'
+			style={{ minHeight: "calc(100vh - 145px)" }}>
 			<div className='bg-white shadow-lg rounded-lg p-8 w-full max-w-lg'>
 				<h2 className='text-3xl font-bold text-center mb-6 text-gray-800'>
 					Zarejestruj się
