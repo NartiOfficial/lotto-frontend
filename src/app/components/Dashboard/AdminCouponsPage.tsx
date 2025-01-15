@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import {
-	Box,
 	Button,
 	Table,
 	TableBody,
@@ -90,7 +89,7 @@ const AdminCouponsPage: React.FC = () => {
 			await api.delete(`/admin/coupons/${couponId}`);
 			setSuccessMessage("Kupon został pomyślnie usunięty.");
 			setCoupons((prev) => prev.filter((coupon) => coupon.id !== couponId));
-		} catch (error) {
+		} catch {
 			setErrorMessage("Nie udało się usunąć kuponu.");
 		}
 	};

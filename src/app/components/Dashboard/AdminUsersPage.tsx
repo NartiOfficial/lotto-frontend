@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import {
-	Box,
 	Button,
 	Table,
 	TableBody,
@@ -111,7 +110,7 @@ const AdminUsersPage: React.FC = () => {
 			await api.delete(`/admin/users/${userId}`);
 			setSuccessMessage("Użytkownik został pomyślnie usunięty.");
 			setUsers((prev) => prev.filter((user) => user.id !== userId));
-		} catch (error) {
+		} catch {
 			setErrorMessage("Nie udało się usunąć użytkownika.");
 		}
 	};

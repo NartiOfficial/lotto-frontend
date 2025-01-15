@@ -15,6 +15,7 @@ import {
 	ListItemText,
 	List,
 	ListItem,
+	SelectChangeEvent,
 } from "@mui/material";
 import api from "../../../services/api";
 
@@ -35,12 +36,11 @@ const CreateCouponPage: React.FC = () => {
 		const fetchAvailableDraws = async () => {
 			try {
 				const response = await api.get("/draws");
-				// Filtrowanie przyszłych losowań
 				const futureDraws = response.data.filter(
 					(draw: Draw) => new Date(draw.draw_date) >= new Date()
 				);
 				setAvailableDraws(futureDraws);
-			} catch (error) {
+			} catch {
 				setErrorMessage("Nie udało się pobrać losowań.");
 			}
 		};
@@ -66,7 +66,7 @@ const CreateCouponPage: React.FC = () => {
 		setNumbers(numbers.filter((n) => n !== number));
 	};
 
-	const handleChangeDraws = (event: React.ChangeEvent<{ value: unknown }>) => {
+	const handleChangeDraws = (event: SelectChangeEvent<number[]>) => {
 		setDrawIds(event.target.value as number[]);
 	};
 
@@ -90,7 +90,7 @@ const CreateCouponPage: React.FC = () => {
 			setSuccessMessage(response.data.message);
 			setNumbers([]);
 			setDrawIds([]);
-		} catch (error) {
+		} catch {
 			setErrorMessage("Wystąpił problem podczas tworzenia kuponu.");
 		}
 	};

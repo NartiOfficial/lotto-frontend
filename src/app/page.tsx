@@ -23,7 +23,7 @@ const Home: React.FC = () => {
 				}
 				const data = await response.json();
 				setDraws(data);
-			} catch (error) {
+			} catch {
 				setErrorMessage("Nie udało się pobrać danych o losowaniach.");
 			}
 		};
@@ -46,7 +46,7 @@ const Home: React.FC = () => {
 				<Button
 					variant='contained'
 					color='primary'
-					href='/play'
+					href='/login'
 					className='px-6 py-4 rounded-lg font-semibold text-lg'>
 					Graj teraz!
 				</Button>
