@@ -15,7 +15,6 @@ interface Draw {
 interface Coupon {
 	id: number;
 	numbers: number[];
-	result: string | null;
 	draws: Draw[];
 }
 
@@ -45,15 +44,6 @@ const UserDashboard: React.FC = () => {
 
 		fetchCoupons();
 	}, [user, router]);
-
-	const handleCheckResults = async () => {
-		try {
-			const response = await api.get("/coupons/results");
-			alert(response.data.message || "Sprawdzenie wyników zakończone!");
-		} catch {
-			alert("Nie udało się sprawdzić wyników.");
-		}
-	};
 
 	const formatDates = (draws: Draw[]) => {
 		if (draws.length === 0) return "Brak losowań";
@@ -113,7 +103,6 @@ const UserDashboard: React.FC = () => {
 								<th className='border p-2'>ID</th>
 								<th className='border p-2'>Daty losowania</th>
 								<th className='border p-2'>Liczby</th>
-								<th className='border p-2'>Wynik</th>
 								<th className='border p-2'>Akcje</th>
 							</tr>
 						</thead>
@@ -124,15 +113,11 @@ const UserDashboard: React.FC = () => {
 									<td className='border p-2'>{formatDates(coupon.draws)}</td>
 									<td className='border p-2'>{coupon.numbers.join(", ")}</td>
 									<td className='border p-2'>
-										{coupon.result || "Brak wyników"}
-									</td>
-									<td className='border p-2'>
-										<Button
-											variant='outlined'
-											color='primary'
-											onClick={handleCheckResults}>
-											Sprawdź wyniki
-										</Button>
+										<Link href={`/coupons/${coupon.id}/results`}>
+											<Button variant='outlined' color='primary'>
+												Sprawdź wyniki
+											</Button>
+										</Link>
 									</td>
 								</tr>
 							))}
